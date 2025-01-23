@@ -37,7 +37,7 @@ func getUsers() ([]User, error) {
 }
 
 func createProduct(product *Product) error {
-	currentTime := (time.Now()).Format("2006-01-02")
+	currentTime := (time.Now())
 
 	_, err := db.Exec(
 		"INSERT INTO public.products(name, price, supplier_id, time) VALUES ($1,$2,$3,$4);",
