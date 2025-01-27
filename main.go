@@ -24,6 +24,14 @@ type Product struct {
 	Price       int    `json:"price"`
 	Supplier_id int    `json:"supplier_id"`
 	Time        string `json:"time"`
+	Description string `json:"description"`
+	Category_id int    `json:"category_id"`
+}
+
+type Category struct {
+	ID    int    `json:"id"`
+	Title string `json:"title"`
+	Image string `json:"image"`
 }
 
 type Supplier struct {
@@ -38,9 +46,9 @@ type DayOff struct {
 }
 
 type User struct {
-	ID       int    `json:"id"`
+	ID        int    `json:"id"`
 	Firstname string `json:"firstname"`
-	Lastname string `json:"lastname"`
+	Lastname  string `json:"lastname"`
 }
 
 var db *sql.DB
@@ -79,6 +87,8 @@ func main() {
 	app.Delete("/dayoff/:uid", deleteDayOffHandle)
 	app.Get("/dayoff/:uid", getDayOffsHandler)
 	app.Get("/users", getUsersHandler)
+	app.Post("/category", createCategoryHandler)
+	app.Get("/category", getCategoriesHandler)
 
 	// Start Fiber and Socket.IO
 	app.Listen(":8080")
@@ -122,6 +132,16 @@ func getUsersHandler(c *fiber.Ctx) error {
 	return c.JSON(users)
 }
 
+func getCategoriesHandler(c *fiber.Ctx) error {
+	categories, err := getCategories()
+
+	if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	return c.JSON(categories)
+}
+
 func getProduct(c *fiber.Ctx) error {
 	// Convert the "id" parameter from the request to an integer
 	id, err := strconv.Atoi(c.Params("id"))
@@ -160,6 +180,22 @@ func createProductHandler(c *fiber.Ctx) error {
 	}
 
 	return c.SendString("Create Product Successfully.")
+}
+
+func createCategoryHandler(c *fiber.Ctx) error {
+	category := new(Category)
+
+	if err := c.BodyParser(category); err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+	}
+
+	err := createCategory(category)
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+	}
+
+	return c.SendString("Create Category Successfully.")
 }
 
 func createUserHandler(c *fiber.Ctx) error {

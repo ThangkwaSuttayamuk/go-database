@@ -36,12 +36,49 @@ func getUsers() ([]User, error) {
 	return users, nil
 }
 
+func getCategories() ([]Category, error) {
+	rows, err := db.Query("SELECT id, title, image FROM categories")
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var categories []Category
+
+	for rows.Next() {
+		var c Category
+		err := rows.Scan(&c.ID, &c.Title, &c.Image)
+		if err != nil {
+			return nil, err
+		}
+		categories = append(categories, c)
+	}
+
+	// Check for errors from iterating over rows
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return categories, nil
+}
+
 func createProduct(product *Product) error {
 	currentTime := (time.Now())
 
 	_, err := db.Exec(
-		"INSERT INTO public.products(name, price, supplier_id, time) VALUES ($1,$2,$3,$4);",
-		product.Name, product.Price, product.Supplier_id, currentTime,
+		"INSERT INTO public.products(name, price, supplier_id, time, description, category_id) VALUES ($1,$2,$3,$4,$5,$6);",
+		product.Name, product.Price, product.Supplier_id, currentTime, product.Description, product.Category_id,
+	)
+
+	return err
+}
+
+func createCategory(category *Category) error {
+	_, err := db.Exec(
+		"INSERT INTO public.categories(title, image) VALUES ($1,$2);",
+		category.Title, category.Image,
 	)
 
 	return err
